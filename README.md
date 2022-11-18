@@ -1,2 +1,3 @@
 # count-down
-A basic countdown timer
+
+## A basic timer that corrects for drift
