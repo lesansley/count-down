@@ -1,13 +1,37 @@
 /*
  * @interval number Duration of interval between repeats in ms
- * @duration number Duration of entire event in ms
+ * @options object has keys of either `reps` or `duration` Default {reps: 1}
  * @cb function
  * @error function
 */
 
-//TODO: Accept a reps argument
-//TODO: Improve validation of arguments passed in
-export function timer(interval, duration, cb, error) {
+function isNumber(val) {
+
+}
+
+function argsValidation(interval, options, cb, error) {
+  let argsObject = {}
+  // Validate `interval`
+  if(!isNAN(interval)) {
+    
+  } else {
+    
+  }
+  // Validate `options`
+  
+  // Validate `cb`
+  
+  // Validate `error`
+  
+  return
+}
+
+function timer(interval, options = {reps: 1}, cb, error) {
+  // Validate the arguments. If `false` then return an error.
+  if (!argsValidation(interval, options, cb, error)) { 
+    const message = "Incorrect arguments. Require (interval, options, cb, [error])"
+    error ? return error({message}) : return console.error(message)
+  }
   if(interval && duration && cb) {
     const start = Date.now();
     const end = start + duration
@@ -36,3 +60,5 @@ export function timer(interval, duration, cb, error) {
   }
   return
 }
+
+export default timer
