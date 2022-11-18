@@ -6,24 +6,44 @@
 */
 
 function isNumber(val) {
+  if(!isNAN(val)) {
+    return parseInt(val)
+  } else {
+    return null
+  }
+}
 
+function isOptions(opt) {
+  if(opt.hasOwnProperty("reps")) {
+    return {reps: opt.reps}            
+  } else if(opt.hasOwnProperty("duration")) {
+    return {duration: opt.duration}            
+  } else {
+    return null
+  }
 }
 
 function argsValidation(interval, options, cb, error) {
   let argsObject = {}
   // Validate `interval`
-  if(!isNAN(interval)) {
-    
+  if(!isNumber(interval)) {
+    argsObject.interval = isNumber(interval)
   } else {
-    
+    throw new Error("The interval parameter is not a number")
+  }
+  // Validate options
+  if(!isOptions(obj)) {
+    argsObject.interval = isNumber(interval)
+  } else {
+    throw new Error("The options parameter should contain either a `reps` or `duration` property")
   }
   // Validate `options`
   
   // Validate `cb`
-  
+   argsObject.cb = typeof cb === "function" ? cb : null
   // Validate `error`
-  
-  return
+  argsObject.cb = typeof cb === "function" ? cb : null
+  return argsObject
 }
 
 function timer(interval, options = {reps: 1}, cb, error) {
