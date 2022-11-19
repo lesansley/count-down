@@ -6,79 +6,80 @@
 */
 
 function isNumber(val) {
-  if(!isNAN(val)) {
+  if(!isNaN(val)) {
     return parseInt(val)
   } else {
     return null
   }
 }
 
-function isOptions(opt) {
-  if(opt.hasOwnProperty("reps")) {
-    return {reps: opt.reps}            
-  } else if(opt.hasOwnProperty("duration")) {
-    return {duration: opt.duration}            
+function isOptions(options) {
+  if(options.hasOwnProperty("reps")) {
+    return {reps: options.reps}            
+  } else if(options.hasOwnProperty("duration")) {
+    return {duration: options.duration}            
   } else {
     return null
   }
 }
 
-function argsValidation(interval, options, cb, error) {
+function argsValidation(interval, cb, options) {
   let argsObject = {}
-  // Validate `interval`
-  if(!isNumber(interval)) {
-    argsObject.interval = isNumber(interval)
-  } else {
-    throw new Error("The interval parameter is not a number")
+  try {
+    if(isNumber(interval)) {
+      argsObject.interval = isNumber(interval)
+    } else {
+      throw ("The interval argument is not a number")
+    }
+    
+    const optionsValidation = isOptions(options)
+    if(optionsValidation) {
+      argsObject = {...argsObject, ...optionsValidation}
+    } else {
+      throw ("The options argument should contain either a 'reps' or 'duration' property")
+    }
+    // Validate `options`
+    if(typeof cb === "function") {
+      argsObject.cb = cb
+    } else {
+      throw ("The callback argument should be a function")
+    }
+    return argsObject
+  } catch(error){
+    return {error}
   }
-  // Validate options
-  if(!isOptions(obj)) {
-    argsObject.interval = isNumber(interval)
-  } else {
-    throw new Error("The options parameter should contain either a `reps` or `duration` property")
-  }
-  // Validate `options`
-  
-  // Validate `cb`
-   argsObject.cb = typeof cb === "function" ? cb : null
-  // Validate `error`
-  argsObject.cb = typeof cb === "function" ? cb : null
-  return argsObject
 }
 
-function timer(interval, options = {reps: 1}, cb, error) {
-  // Validate the arguments. If `false` then return an error.
-  if (!argsValidation(interval, options, cb, error)) { 
-    const message = "Incorrect arguments. Require (interval, options, cb, [error])"
-    error ? return error({message}) : return console.error(message)
+function timer(interval, cb, options = {reps: 1}) {
+  const validation = argsValidation(interval, cb, options)
+  if (validation.error) {
+    return validation.error
   }
-  if(interval && duration && cb) {
-    const start = Date.now();
-    const end = start + duration
-    let expected = start + interval;
-    let setTimer = setTimeout(step, interval);
+  
+  const start = Date.now();
+  const end = start + duration
+  let expected = start + interval;
+  let setTimer = setTimeout(step, interval);
 
-    function step() {
-      if(Date.now() > end) {
-        stopTimer()
-        return null
-      }
-        const dt = Date.now() - expected; // the drift (positive for overshooting)
-        if (dt > interval) {
-          const message = "Exiting timer to avoid possible futile catchup."
-          stopTimer()
-          error ? return error({message}) : return console.error(message)
-        }
-        cb(expected)
-        expected += interval;
-        setTimer = setTimeout(step, Math.max(0, interval - dt)); // take into account drift
+  function step() {
+    if(Date.now() > end) {
+      stopTimer()
+      return null
     }
-
-    function stopTimer() {
-     clearTimeout(setTimer)
+    const dt = Date.now() - expected; // the drift (positive for overshooting)
+    if (dt > interval) {
+      const message = "Exiting timer to avoid possible futile catchup."
+      stopTimer()
+      throw new Error({message})
     }
+    cb(expected)
+    expected += interval;
+    setTimer = setTimeout(step, Math.max(0, interval - dt)); // take into account drift
   }
-  return
+
+  function stopTimer() {
+    clearTimeout(setTimer)
+  }
 }
 
 export default timer
