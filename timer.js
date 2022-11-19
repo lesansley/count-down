@@ -7,17 +7,29 @@
 
 function isNumber(val) {
   if(!isNaN(val)) {
-    return parseInt(val)
+    if(parseInt(val) >= 0) return parseInt(val)
+    return null
   } else {
     return null
   }
 }
 
 function isOptions(options) {
+  if(typeof options !== "object") return null
   if(options.hasOwnProperty("reps")) {
-    return {reps: options.reps}            
+    if(isNumber(options.reps)) return {reps: isNumber(options.reps)}
+    return null
   } else if(options.hasOwnProperty("duration")) {
-    return {duration: options.duration}            
+    if(isNumber(options.duration)) return {reps: isNumber(options.duration)}
+    return null            
+  } else {
+    return null
+  }
+}
+
+function isFunction(func) {
+  if(typeof cb === "function") {
+    return true
   } else {
     return null
   }
@@ -29,25 +41,31 @@ function argsValidation(interval, cb, options) {
     if(isNumber(interval)) {
       argsObject.interval = isNumber(interval)
     } else {
-      throw ("The interval argument is not a number")
+      throw ("The interval argument must be a positive number")
     }
     
     const optionsValidation = isOptions(options)
     if(optionsValidation) {
-      argsObject = {...argsObject, ...optionsValidation}
+      argsObject = {...argsObject, ...formatOptions()}
     } else {
-      throw ("The options argument should contain either a 'reps' or 'duration' property")
+      throw ("The options argument must contain either a 'reps' or 'duration' property the value of which is must be a positive number")
     }
-    // Validate `options`
-    if(typeof cb === "function") {
+    
+    if(isFunction(cb)) {
       argsObject.cb = cb
     } else {
-      throw ("The callback argument should be a function")
+      throw ("The callback argument must be a function")
     }
     return argsObject
   } catch(error){
     return {error}
   }
+}
+
+function formatOptions(interval, options) {
+  const newOptions = {}
+  option.reps ?
+  
 }
 
 function timer(interval, cb, options = {reps: 1}) {
@@ -70,7 +88,7 @@ function timer(interval, cb, options = {reps: 1}) {
     if (dt > interval) {
       const message = "Exiting timer to avoid possible futile catchup."
       stopTimer()
-      throw new Error({message})
+      throw new Error(message)
     }
     cb(expected)
     expected += interval;
