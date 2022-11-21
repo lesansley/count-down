@@ -1,4 +1,11 @@
-function isNumber(val) {
+TODO: Add a delay argument to start the timer in the future
+TODO: Add a cancel functionality
+/*
+ * @interval number Positive integer. Duration of interval between repeats in ms
+ * @cb function Calls the funcitn passing in an object. Either {interval: integer} or {error: text}
+ * @options object has keys of either `reps` or `duration` Default {reps: 1}
+*/
+unction isNumber(val) {
   if(!isNaN(val)) {
     if(parseInt(val) > 0) return parseInt(val)
     return null
@@ -64,28 +71,22 @@ function argsValidation(interval, cb, options) {
   }
 }
 
-/*
- * @interval number Positive integer. Duration of interval between repeats in ms
- * @cb function Calls the funcitn passing in an object. Either {interval: integer} or {error: text}
- * @options object has keys of either `reps` or `duration` Default {reps: 1}
-*/
-
 function timer(interval, cb, options = {reps: 1}) {
   try {
-    const timerOptions = argsValidation(interval, cb, options)
+      const timerOptions = argsValidation(interval, cb, options)
     if (timerOptions.error) {
       return timerOptions.error
     }
 
     const reps = Math.floor(timerOptions.reps)
-    const start = Date.now()
+    let start = Date.now()
     const duration = interval * (reps + 1);
-    
-    cb({interval: start})
+
+    cb({timeStamp: start, cancel: cancelInterval})
     
     let expected = start + interval
-    let setTimer = setTimeout(step, interval);
-
+    setTimeout(step, interval);
+    
     function step() {
       if(Date.now() > start + duration) {
         stopTimer()
@@ -93,20 +94,26 @@ function timer(interval, cb, options = {reps: 1}) {
       }
       const dt = Date.now() - expected; // the drift (positive for overshooting)
       if (dt > interval) {
-        stopTimer()
+        stopTimer(name)
         throw ("Exiting timer to avoid possible futile catchup.")
       }
-      cb({interval: expected})
+      cb({timeStamp: start, cancel: cancelInterval})
       expected += interval;
-      setTimer = setTimeout(step, Math.max(0, interval - dt)); // take into account drift
+      setTimeout(step, Math.max(0, interval - dt)); // take into account drift
     }
 
     function stopTimer() {
-      clearTimeout(setTimer)
+      clearTimeout()
     }
+    
+    function cancelInterval() {
+      start = 0
+    }
+    
   } catch(error){
-    console.error({error})
-    return {error}
+    const errorMessage = Object.keys(error).length !== 0 ? error: `Unknown error. Timer has aborted.`
+    console.error({error: errorMessage})
+    return {error: errorMessage}
   }
 }
 
