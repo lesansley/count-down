@@ -1,5 +1,5 @@
 TODO: Add a delay argument to start the timer in the future
-TODO: Add a cancel functionality
+
 /*
  * @interval number Positive integer. Duration of interval between repeats in ms
  * @cb function Calls the funcitn passing in an object. Either {interval: integer} or {error: text}
