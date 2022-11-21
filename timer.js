@@ -1,13 +1,6 @@
-/*
- * @interval number Duration of interval between repeats in ms
- * @options object has keys of either `reps` or `duration` Default {reps: 1}
- * @cb function
- * @error function
-*/
-
 function isNumber(val) {
   if(!isNaN(val)) {
-    if(parseInt(val) >= 0) return parseInt(val)
+    if(parseInt(val) > 0) return parseInt(val)
     return null
   } else {
     return null
@@ -27,8 +20,15 @@ function isOptions(options) {
   }
 }
 
-function isFunction(func) {
-  if(typeof cb === "function") {
+function getReps(interval, options) {
+  if (options.reps) return options.reps
+  if (options.duration) return options.duration/interval
+  else return null
+}
+
+function isFunction(cb) {
+  const func = cb
+  if(typeof func === "function") {
     return true
   } else {
     return null
@@ -38,17 +38,18 @@ function isFunction(func) {
 function argsValidation(interval, cb, options) {
   let argsObject = {}
   try {
-    if(isNumber(interval)) {
-      argsObject.interval = isNumber(interval)
+    const validInterval = isNumber(interval)
+    if(validInterval) {
+      argsObject.interval = validInterval
     } else {
-      throw ("The interval argument must be a positive number")
+      throw ("The interval argument must be a positive integer")
     }
     
-    const optionsValidation = isOptions(options)
-    if(optionsValidation) {
-      argsObject = {...argsObject, ...formatOptions()}
+    const validOptions = isOptions(options)
+    if(validOptions) {
+      argsObject = {...argsObject, reps: getReps(interval, options)}
     } else {
-      throw ("The options argument must contain either a 'reps' or 'duration' property the value of which is must be a positive number")
+      throw ("The options argument must contain either a 'reps' or 'duration' property the value of which must be a positive integer")
     }
     
     if(isFunction(cb)) {
@@ -58,45 +59,54 @@ function argsValidation(interval, cb, options) {
     }
     return argsObject
   } catch(error){
+    console.error({error})
     return {error}
   }
 }
 
-function formatOptions(interval, options) {
-  const newOptions = {}
-  option.reps ?
-  
-}
+/*
+ * @interval number Positive integer. Duration of interval between repeats in ms
+ * @cb function Calls the funcitn passing in an object. Either {interval: integer} or {error: text}
+ * @options object has keys of either `reps` or `duration` Default {reps: 1}
+*/
 
 function timer(interval, cb, options = {reps: 1}) {
-  const validation = argsValidation(interval, cb, options)
-  if (validation.error) {
-    return validation.error
-  }
-  
-  const start = Date.now();
-  const end = start + duration
-  let expected = start + interval;
-  let setTimer = setTimeout(step, interval);
-
-  function step() {
-    if(Date.now() > end) {
-      stopTimer()
-      return null
+  try {
+    const timerOptions = argsValidation(interval, cb, options)
+    if (timerOptions.error) {
+      return timerOptions.error
     }
-    const dt = Date.now() - expected; // the drift (positive for overshooting)
-    if (dt > interval) {
-      const message = "Exiting timer to avoid possible futile catchup."
-      stopTimer()
-      throw new Error(message)
-    }
-    cb(expected)
-    expected += interval;
-    setTimer = setTimeout(step, Math.max(0, interval - dt)); // take into account drift
-  }
 
-  function stopTimer() {
-    clearTimeout(setTimer)
+    const reps = Math.floor(timerOptions.reps)
+    const start = Date.now()
+    const duration = interval * (reps + 1);
+    
+    cb({interval: start})
+    
+    let expected = start + interval
+    let setTimer = setTimeout(step, interval);
+
+    function step() {
+      if(Date.now() > start + duration) {
+        stopTimer()
+        return null
+      }
+      const dt = Date.now() - expected; // the drift (positive for overshooting)
+      if (dt > interval) {
+        stopTimer()
+        throw ("Exiting timer to avoid possible futile catchup.")
+      }
+      cb({interval: expected})
+      expected += interval;
+      setTimer = setTimeout(step, Math.max(0, interval - dt)); // take into account drift
+    }
+
+    function stopTimer() {
+      clearTimeout(setTimer)
+    }
+  } catch(error){
+    console.error({error})
+    return {error}
   }
 }
 
